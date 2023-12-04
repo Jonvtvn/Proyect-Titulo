@@ -1,0 +1,56 @@
+version: '3'
+services:
+
+  mongodb:
+    image: mongo
+    restart: always
+    container_name: mongodb
+    ports:
+      - ${MONGO_PORT}:${MONGO_PORT}
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
+
+  mongo-express:
+    image: mongo-express
+    restart: always
+    container_name: mongo-express
+    ports:
+      - ${MONGO_EXPRESS_PORT}:${MONGO_EXPRESS_PORT}
+    environment:
+      ME_CONFIG_BASICAUTH_USERNAME: ${DB_MONGO_EXPRESS_USERNAME}
+      ME_CONFIG_BASICAUTH_PASSWORD: ${DB_MONGO_EXPRESS_PASSWORD}
+      ME_CONFIG_MONGODB_URL: ${MONGO_URL}
+
+  barber-backend:
+    restart: always
+    build:
+      context: ./barber-backend
+      dockerfile: Dockerfile
+    container_name: barber-backend
+    ports:
+      - ${BACKEND_PORT}:${BACKEND_PORT}
+    depends_on:
+      - mongodb
+    environment:
+      NODE_ENV: development
+    env_file:
+      - .env
+      - ./barber-backend/.env
+
+  barber-frontend:
+    restart: always
+    build:
+      context: ./barber-frontend
+      dockerfile: Dockerfile
+    container_name: barber-frontend
+    ports:
+      - ${FRONTEND_PORT}:${FRONTEND_PORT}
+    environment:
+      NODE_ENV: development
+    env_file:
+      - .env
+      - ./barber-frontend/.env
+      
+volumes:
+  mongodb_data:
